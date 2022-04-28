@@ -6,19 +6,19 @@ class Queue:
 
     def enQueue(self, val):
         self.q.append(val)
-        last += 1
+        self.last+=1
 
     def deQueue(self):
-        self.q.pop()
-        first += 1
+        self.first += 1
         
-    def isEmpty():
-        if last == first:
+    def isEmpty(self):
+        if self.last == self.first:
             return True
 
-    def isFull():
+    def isFull(self):
         if self.first == 0:
             return True
 
-        
+    def look(self):
+        return self.q[self.first:self.last]
 
