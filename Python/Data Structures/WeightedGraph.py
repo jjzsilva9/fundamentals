@@ -1,11 +1,7 @@
 from PriorityQueue import Queue
 class WeightedGraph:
-    def __init__(self, nodes, weights):
-        self.adj_matrix = []
+    def __init__(self, nodes):
         self.adj_list = {}
-        for node1 in nodes:
-          for node2 in nodes
-
         for node in self.nodes:
             self.adj_list[node]=[]
 
@@ -13,9 +9,12 @@ class WeightedGraph:
         for node in self.nodes:
             print(node, "-->", self.adj_list[node])
 
-    def addNode(self, u, v):
-        self.adj_list[u].append(v)
-        self.adj_list[v].append(u)
+    def addLink(self, u, v, weight):
+        self.adj_list[u].append({v: weight})
+        self.adj_list[v].append({u: weight})
+
+    def addNode(self, node):
+        self.adj_list[node] = []
 
     def deleteNode(self, u):
         for node in self.adj_list:

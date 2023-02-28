@@ -19,6 +19,12 @@ class Node:
                 else:
                     self.right.insert(data)
 
+    def minimum(self):
+        p = self
+        while p.left:
+            p = p.left
+        return p.data
+
     def lrn(self):
         if self.left:
             self.left.lrn()
@@ -48,7 +54,6 @@ class Node:
 root = Node(1)
 root.insert(2)
 root.insert(3)
-root.insert(0)
 root.insert(4)
 root.insert(7)
 root.insert(5)
@@ -56,6 +61,7 @@ root.insert(6)
 root.lrn()
 root.nlr()
 root.lnr()
+
 
 
 
