@@ -58,9 +58,6 @@ root.insert(4)
 root.insert(7)
 root.insert(5)
 root.insert(6)
-root.lrn()
-root.nlr()
-root.lnr()
 
 
 
