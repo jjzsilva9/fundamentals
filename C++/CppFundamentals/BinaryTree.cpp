@@ -1,15 +1,16 @@
 ﻿#include <iostream>
 #include <string>
+#include <stdexcept>
 
 class Node {
 private:
     int val;
-    std::shared_ptr<Node> l;
-    std::shared_ptr<Node> r;
+    Node* l = nullptr;
+    Node* r = nullptr;
 
 public:
     Node(int a) : val{ a } {};
-    Node(int a, std::shared_ptr<Node> const left, std::shared_ptr<Node> const right) : val{ a }, l{ left }, r{ right } {};
+    Node(int a, Node& const left, Node& const right) : val{ a }, l{ &left }, r{ &right } {};
 
     ~Node() {};
 
@@ -17,55 +18,203 @@ public:
         return val;
     };
 
-    std::shared_ptr<Node> left() const {
-        return std::shared_ptr<Node>{l};
+    Node* left() const {
+        return l;
     }
 
-    std::shared_ptr<Node> right() const {
-        return std::shared_ptr<Node>{r};
+    Node* right() const {
+        return r;
     }
 
-    std::shared_ptr<Node> addNode(int v) {
+    int addNode(int v) {
         if (v > val) {
             if (r != nullptr) {
-                return (r->addNode(v));
+                r->addNode(v);
+                return 0;
             }
             else {
-                r = std::shared_ptr<Node>{ new Node(v) };
-                return r;
+                r = { new Node(v) };
+                return 0;
             }
         }
         if (v < val) {
             if (l != nullptr) {
-                return (l->addNode(v));
+                l->addNode(v);
+                return 0;
             }
             else {
-                l = std::shared_ptr<Node>{ new Node(v) };
-                return l;
+                l = { new Node(v) };
+                return 0;
             }
         }
+        return 1;
     };
 
+    void setValue(int v) {
+        val = v;
+    }
+
+    Node* findNode(int v) {
+        if (v == val) {
+            return this;
+        }
+        else if (v > val) {
+            if (r != nullptr) {
+                return r->findNode(v);
+            }
+            else {
+                throw (std::invalid_argument(std::to_string(v) + " is not a valid Node value"));
+            }
+        }
+        else if (v < val) {
+            if (l != nullptr) {
+                return l->findNode(v);
+            }
+            else {
+                throw (std::invalid_argument(std::to_string(v) + " is not a valid Node value"));
+            }
+        }
+    }
+
     //TODO
-    std::shared_ptr<Node> removeNode(int v) {
+    Node* removeNode(int v) {
+        Node* p = findParent(v);
+        Node* c = nullptr;
+        if (p == nullptr) {
+            c = findNode(v);
+        }
+        else {
+            if (p->left() != nullptr) {
+                if (p->left()->value() == v) {
+                    c = p->left();
+                }
+                else {
+                    c = p->right();
+                }
+            }
+            else {
+                c = p->right();
+            }
+        }
+        if (c->left() != nullptr && c->right() != nullptr) {
+            Node* leftmostParent = r->findLeftmostParent();
+            if (leftmostParent->left()->right() != nullptr) {
+                int temp = c->value();
+                c->setValue(leftmostParent->left()->value());
+                leftmostParent->left()->setValue(temp);
+                Node* ans = leftmostParent->left();
+                leftmostParent->setLeft(leftmostParent->left()->right());
+                return ans;
+            }
+        }
+        else if (c->left() != nullptr){
+            if (p == nullptr) {
+                return c->left();
+            }
+            else if (p->left() == c) {
+                p->setLeft(c->left());
+                return this;
+            }
+            else if (p->right() == c) {
+                p->setRight(c->left());
+                return this;
+            }
+        }
+        else if (c->right() != nullptr) {
+            if (p == nullptr) {
+                return c->right();
+            }
+            else if (p->left() == c) {
+                p->setLeft(c->right());
+                return this;
+            }
+            else if (p->right() == c) {
+                p->setRight(c->right());
+                return this;
+            }
+        }
+        else {
+            if (p == nullptr) {
+                return nullptr;
+            }
+            else if (p->left() == c) {
+                p->setLeft(nullptr);
+            }
+            else if (p->right() == c) {
+                p->setRight(nullptr);
+            }
+        }
+        
+    }
+
+    void setLeft(Node* v) {
+        l = v;
+    }
+
+    void setRight(Node* v) {
+        r = v;
+    }
+
+    Node* findLeftmost() {
+        if (l != nullptr) {
+            return l->findLeftmost();
+        }
+        else {
+            return this;
+        }
+    }
+
+    Node* findLeftmostParent() {
+        if (l->left() != nullptr) {
+            return l->findLeftmost();
+        }
+        else {
+            return this;
+        }
+    }
+
+    Node* findRightmost() {
+        if (r->right() != nullptr) {
+            return r->findLeftmost();
+        }
+        else {
+            return this;
+        }
+    }
+
+    Node* findRightmostParent() {
+        if (r != nullptr) {
+            return r->findLeftmost();
+        }
+        else {
+            return this;
+        }
+    }
+
+    Node* findParent(int v) {
         if (v > val) {
             if (r != nullptr) {
-                return (r->removeNode(v));
+                if (r->value() == v) {
+                    return this;
+                }
+                return r->findNode(v);
             }
             else {
-
-
+                return nullptr;
             }
         }
-        if (v < val) {
+        else if (v < val) {
             if (l != nullptr) {
-                return (l->removeNode(v));
+                if (l->value() == v) {
+                    return this;
+                }
+                return l->findNode(v);
             }
             else {
-
-
+                return nullptr;
             }
         }
+        return nullptr;
     }
 
     std::string nlr() const {
@@ -114,8 +263,12 @@ std::ostream& operator<<(std::ostream& os, const Node& n) {
 };
 
 int main() {
-    std::shared_ptr<Node> n {new Node(5)};
-    std::shared_ptr<Node> l = n->addNode(4);
-    std::shared_ptr<Node> r = n->addNode(6);
-    std::cout << n->nlr() << std::endl << n->lrn() << std::endl << n->lnr();
+    Node n = Node(3);
+    n.addNode(4);
+    n.addNode(6);
+    n.addNode(5);
+
+    std::cout << n.lnr() << std::endl;
+    n = *(n.removeNode(3));
+    std::cout << n.lnr() << std::endl;
 }
