@@ -10,7 +10,7 @@ private:
 
 public:
     Node(int a) : val{ a } {};
-    Node(int a, Node& const left, Node& const right) : val{ a }, l{ &left }, r{ &right } {};
+    Node(int a, Node* const left, Node* const right) : val{ a }, l{ left }, r{ right } {};
 
     ~Node() {};
 
@@ -63,7 +63,7 @@ public:
                 return r->findNode(v);
             }
             else {
-                throw (std::invalid_argument(std::to_string(v) + " is not a valid Node value"));
+                return nullptr;
             }
         }
         else if (v < val) {
@@ -71,7 +71,7 @@ public:
                 return l->findNode(v);
             }
             else {
-                throw (std::invalid_argument(std::to_string(v) + " is not a valid Node value"));
+                return nullptr;
             }
         }
     }
@@ -96,6 +96,10 @@ public:
                 c = p->right();
             }
         }
+       
+        if (c == nullptr) {
+            return this;
+        }
         if (c->left() != nullptr && c->right() != nullptr) {
             Node* leftmostParent = r->findLeftmostParent();
             if (leftmostParent->left()->right() != nullptr) {
@@ -111,11 +115,11 @@ public:
             if (p == nullptr) {
                 return c->left();
             }
-            else if (p->left() == c) {
+            else if (p->left() != nullptr && p->left() == c) {
                 p->setLeft(c->left());
                 return this;
             }
-            else if (p->right() == c) {
+            else if (p->right() != nullptr && p->right() == c) {
                 p->setRight(c->left());
                 return this;
             }
@@ -124,11 +128,11 @@ public:
             if (p == nullptr) {
                 return c->right();
             }
-            else if (p->left() == c) {
+            else if (p->left() != nullptr && p->left() == c) {
                 p->setLeft(c->right());
                 return this;
             }
-            else if (p->right() == c) {
+            else if (p->right() != nullptr && p->right() == c) {
                 p->setRight(c->right());
                 return this;
             }
@@ -139,9 +143,11 @@ public:
             }
             else if (p->left() == c) {
                 p->setLeft(nullptr);
+                return this;
             }
             else if (p->right() == c) {
                 p->setRight(nullptr);
+                return this;
             }
         }
         
@@ -197,7 +203,7 @@ public:
                 if (r->value() == v) {
                     return this;
                 }
-                return r->findNode(v);
+                return r->findParent(v);
             }
             else {
                 return nullptr;
@@ -208,7 +214,7 @@ public:
                 if (l->value() == v) {
                     return this;
                 }
-                return l->findNode(v);
+                return l->findParent(v);
             }
             else {
                 return nullptr;
@@ -256,10 +262,80 @@ public:
         return ans;
     }
 
+    void swapNodes(Node* a, Node* b) {
+        if (a == nullptr) {
+            if (b != nullptr) {
+                a = new Node(b->value(), b->left(), b->right());
+                b = nullptr;
+                return;
+            }
+            else {
+                return;
+            }
+        }
+        else if (b == nullptr) {
+            if (a != nullptr) {
+                b = new Node(a->value(), a->left(), a->right());
+                a = nullptr;
+                return;
+            }
+            else {
+                return;
+            }
+        }
+        int tempVal = a->value();
+        Node* tempLeft = a->left();
+        Node* tempRight = a->right();
+        a->setValue(b->value());
+        a->setLeft(b->left());
+        a->setRight(b->right());
+        b->setValue(tempVal);
+        b->setLeft(tempLeft);
+        b->setRight(tempRight);
+    }
+
+    void rotateLeft() {
+        if (r != nullptr) {
+            Node* const root = r;
+            Node* const rootLeft = root->left();
+
+            setRight(rootLeft);
+
+            root->setLeft(this);
+            swapNodes(this, root);
+        }
+
+    }
+
+    void rotateRight() {
+        if (l != nullptr) {
+            Node* const root = l;
+            Node* const rootRight = root->right();
+
+            setRight(rootRight);
+
+            root->setRight(this);
+            swapNodes(this, root);
+        }
+    }
+
 };
 
 std::ostream& operator<<(std::ostream& os, const Node& n) {
-    return os << "{" << n.value() << ", " << n.left() << ", " << n.right() << "}" << std::endl;
+    os << "{" << n.value() << ", ";
+    if (n.left() != nullptr) {
+        os << "Left: " << n.left()->value();
+    }
+    else {
+        os << "Left: Null";
+    }
+    if (n.right() != nullptr) {
+        os << ", Right: " << n.right()->value();
+    }
+    else {
+        os << ", Right: Null";
+    }
+    return os << "}" << std::endl;//<< "{" << n.value() << ", " << n.left() << ", " << n.right() << "}" << std::endl;
 };
 
 int main() {
@@ -268,7 +344,8 @@ int main() {
     n.addNode(6);
     n.addNode(5);
 
-    std::cout << n.lnr() << std::endl;
-    n = *(n.removeNode(3));
-    std::cout << n.lnr() << std::endl;
+    std::cout << n.nlr();
+    n.rotateLeft();
+    std::cout << n;
+    std::cout << n.nlr();
 }
